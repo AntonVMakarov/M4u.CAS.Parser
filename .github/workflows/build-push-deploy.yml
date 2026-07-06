@@ -1,0 +1,192 @@
+name: build-and-push
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+  # Manual trigger for rollback to specific release or redeploy latest
+  workflow_dispatch:
+
+env:
+  M4U_WEB_REPO: ${{ github.repository }} # mathforyou/M4u.Web
+
+  REGISTRY: ghcr.io
+  REGISTRY_USER: 'mathforyou'
+  REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  IMAGE_NAME: 'ghcr.io/mathforyou/m4u-web' # ghcr.io/mathforyou/m4u-web
+  DOCKER_FILE_PATH: 'build/m4u-web.Dockerfile'
+  #TAG_VERSION: 1.0.5 # ${{ github.ref_name }} # for example: 1.0.0
+
+  NUGET_USERNAME: 'mathforyou'
+  NUGET_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  # NUGET_SOURCE: https://nuget.pkg.github.com/mathforyou/index.json
+
+  # envs from runtime
+  # COMMIT_SHORT_SHA: 55429a1
+  # TAG_VERSION_NORMALIZED: 1-0-0
+  # IMAGE_LATEST_TAG: ghcr.io/mathforyou/m4u-web:latest
+  # IMAGE_COMMIT_TAG: ghcr.io/mathforyou/m4u-web:v-1-0-0-55429a1
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # Проверка, что github.ref - это тег и он начинается с 'v'
+      - name: Check if ref is a valid tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "Valid tag: ${{ github.ref }}"
+          else
+            echo "Invalid tag: ${{ github.ref }}. Deployment is allowed only for tags."
+            exit 1
+          fi
+
+      # clone M4u.Web repo from current tag
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.M4U_WEB_REPO }}
+          ref: ${{ github.ref_name }}
+
+      - name: Create git commit SHA hash
+        id: hash
+        run: |
+          echo "COMMIT_SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+
+      # change format from v.*.*.* to v-*-*-*
+      - name: Prepare tag version
+        run: |
+          echo "TAG_VERSION_NORMALIZED=${{ github.ref }}" | sed 's/refs\/tags\///' >> $GITHUB_ENV
+
+      - name: Create docker image tags
+        id: tags
+        run: |
+          echo "IMAGE_LATEST_TAG=${{ env.IMAGE_NAME }}:latest" >> $GITHUB_ENV
+          echo "IMAGE_COMMIT_TAG=${{ env.IMAGE_NAME }}:${{ env.TAG_VERSION_NORMALIZED }}-${{ env.COMMIT_SHORT_SHA }}" >> $GITHUB_ENV
+
+      - name: Create NuGet source
+        run: |
+          echo "NUGET_SOURCE=https://nuget.pkg.github.com/${{ env.NUGET_USERNAME }}/index.json" >> $GITHUB_ENV
+
+      - name: Print runtime environment variables
+        run: |
+          echo "COMMIT_SHORT_SHA=${{ env.COMMIT_SHORT_SHA }}"
+          echo "TAG_VERSION_NORMALIZED=${{ env.TAG_VERSION_NORMALIZED }}"
+          echo "IMAGE_LATEST_TAG=${{ env.IMAGE_LATEST_TAG }}"
+          echo "IMAGE_COMMIT_TAG=${{ env.IMAGE_COMMIT_TAG }}"
+          echo "NUGET_SOURCE=${{ env.NUGET_SOURCE }}"
+
+      # =======================================================
+
+      - name: Log In to GitHub docker container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ${{ env.DOCKER_FILE_PATH }}
+          build-args: |
+            NUGET_SOURCE=${{ env.NUGET_SOURCE }}
+            NUGET_USERNAME=${{ env.NUGET_USERNAME }}
+            NUGET_PASSWORD=${{ env.NUGET_PASSWORD }}
+          tags: ${{ env.IMAGE_LATEST_TAG }},${{ env.IMAGE_COMMIT_TAG }}
+          context: .
+
+    outputs:
+      commit_short_sha: ${{ env.COMMIT_SHORT_SHA }}
+      image_latest_tag: ${{ env.IMAGE_LATEST_TAG }}
+      image_commit_tag: ${{ env.IMAGE_COMMIT_TAG }}
+
+  deploy-prod:
+    needs: build-and-push-image
+    runs-on: ubuntu-22.04
+
+    env:
+      DEPLOY_DIR_PATH: '~/services/apps/m4u-web/prod'
+      DOCKER_SECRETS_FILE_NAME: 'docker-compose.m4u-web.prod.secrets.yml'
+      CI_IMAGE_TAG: ${{ needs.build-and-push-image.outputs.image_commit_tag }}
+      CI_COMMIT_SHORT_SHA: ${{ needs.build-and-push-image.outputs.commit_short_sha }}
+
+    steps:
+      - name: Checkout repository
+        if: ${{ github.event.inputs.version == '' }}
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deploy/docker-compose.m4u-web.yml
+            deploy/docker-compose.m4u-web.prod.yml
+            deploy/docker-compose.m4u-web.prod.secrets.yml
+          sparse-checkout-cone-mode: false
+          repository: ${{ env.M4U_WEB_REPO }}
+          ref: ${{ github.ref_name }}
+
+      - name: Move files to root
+        run: |
+          mv deploy/* .
+          rm -rf deploy
+
+      - name: Create .env.prod file for app
+        run: |
+          echo "Generating .env.prod file"
+          echo "CI_IMAGE_TAG='${{ env.CI_IMAGE_TAG }}'" >> .env.prod
+          echo "${{ secrets.PROD_APP_ENVS }}" >> .env.prod
+
+      - name: Create .secrets.prod file for app
+        run: |
+          echo "Generating .secrets.prod file"
+          echo "${{ secrets.PROD_APP_SECRETS }}" >> .secrets.prod
+
+      - name: Copy deployment files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_API_SERVER_IP }}
+          port: ${{ secrets.DEPLOY_API_SERVER_SSH_PORT }}
+          username: ${{ secrets.DEPLOY_API_SERVER_USER }}
+          key: ${{ secrets.DEPLOY_API_SERVER_KEY }}
+          source: '.env.prod,.secrets.prod,docker-compose.m4u-web.yml,docker-compose.m4u-web.prod.yml,docker-compose.m4u-web.prod.secrets.yml'
+          target: ${{ env.DEPLOY_DIR_PATH }}
+
+      - name: Deploy app stack via ssh on manager node
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          DOCKER_REGISTRY: ${{ env.REGISTRY }}
+          DOCKER_USER: ${{ env.REGISTRY_USER }}
+          DOCKER_TOKEN: ${{ env.REGISTRY_TOKEN }}
+        with:
+          host: ${{ secrets.DEPLOY_API_SERVER_IP }}
+          port: ${{ secrets.DEPLOY_API_SERVER_SSH_PORT }}
+          username: ${{ secrets.DEPLOY_API_SERVER_USER }}
+          key: ${{ secrets.DEPLOY_API_SERVER_KEY }}
+          envs: DOCKER_REGISTRY,DOCKER_USER,DOCKER_TOKEN
+          script: |
+            cd ${{ env.DEPLOY_DIR_PATH }}
+
+            echo "$DOCKER_TOKEN" | docker login $DOCKER_REGISTRY -u $DOCKER_USER --password-stdin
+
+            docker compose \
+              --env-file .env.prod \
+              --env-file .secrets.prod \
+              -f docker-compose.m4u-web.yml \
+              -f docker-compose.m4u-web.prod.yml \
+              -f docker-compose.m4u-web.prod.secrets.yml \
+              pull
+
+            docker compose \
+              --env-file .env.prod \
+              --env-file .secrets.prod \
+              -f docker-compose.m4u-web.yml \
+              -f docker-compose.m4u-web.prod.yml \
+              -f docker-compose.m4u-web.prod.secrets.yml \
+              up \
+              -d
