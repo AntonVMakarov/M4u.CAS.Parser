@@ -1,16 +1,23 @@
-﻿namespace M4u.CAS.Parser;
+﻿using System.Linq.Expressions;
+
+namespace M4u.CAS.Parser;
 
 /// <inheritdoc />
 /// <summary>
-/// 
+/// Токенизатор, преобразующий входную строку в список токенов.
 /// </summary>
-internal class StringToTokensMapper : ITokenizer
+internal class Tokenizer : ITokenizer
 {
-    private readonly IEnumerable<ITokenParser> _tokenParsers;
+    private readonly IReadOnlyList<ITokenParser> _tokenParsers;
     private readonly ITokenFactory _tokenFactory;
 
-    public StringToTokensMapper(IEnumerable<ITokenParser> tokenParsers, ITokenFactory tokenFactory)
+    public Tokenizer(IReadOnlyList<ITokenParser> tokenParsers, ITokenFactory tokenFactory)
     {
+        // Проверяем входные параметры:
+        ArgumentNullException.ThrowIfNull(tokenParsers);
+        ArgumentNullException.ThrowIfNull(tokenFactory);
+
+        // Сохраняем ссылки на переданные зависимости:
         _tokenParsers = tokenParsers;
         _tokenFactory = tokenFactory;
     }
@@ -20,8 +27,14 @@ internal class StringToTokensMapper : ITokenizer
     /// <inheritdoc />
     /// <exception cref="FormatException">Возникает, когда не удалось распасить символ или последовательность символов
     /// в определённый токен из заданного набора.</exception>
-    public IEnumerable<IToken> TryParse(string expr)
+    public TokenizerResult TryParse(TokenizerRequest request)
     {
+        // Проверяем входные параметры:
+        ArgumentNullException.ThrowIfNull(request);
+
+        // Проверяем токен отмены:
+        request.CancellationToken?.ThrowIfCancellationRequested();
+
         // Список токенов, сформированный на основе входного выражения:
         List<IToken> listOfTokens = new List<IToken>();
 
@@ -29,10 +42,10 @@ internal class StringToTokensMapper : ITokenizer
         bool isTokenIdentified;
 
         // Проходим по всем элементам входной строки:
-        for (int index = 0; index < expr.Length;)
+        for (int index = 0; index < request.Expression.Length;)
         {            
             // Сразу пропускаем пробелы:
-            if (char.IsWhiteSpace(expr[index])) 
+            if (char.IsWhiteSpace(request.Expression[index])) 
             {
                 index++;
                 continue;
@@ -48,7 +61,7 @@ internal class StringToTokensMapper : ITokenizer
             foreach(ITokenParser parser in _tokenParsers)
             {
                 // Если мы идентифицировали токен во входной строке начиная с позиции i:
-                if (parser.Match(expr, index, out string value))
+                if (parser.Match(request.Expression, index, out string value))
                 {
                     // Добавляем данный токен в результирующий список токенов:
                     listOfTokens.Add(
@@ -80,12 +93,12 @@ internal class StringToTokensMapper : ITokenizer
             if (!isTokenIdentified)
             {
                 //throw new UnknownTokenParseException(expr.ToString() + ";" + i.ToString());
-                throw new FormatException($"Неизвестный символ '{expr[index]}' на позиции {index}");
+                return TokenizerResult.Failure(index, request.Expression[index].ToString());
             }
         }
 
         // если мы добрались сюда, то мы распарсили входную строку на список токенов =>
         // возвращаем результат:
-        return listOfTokens;
+        return TokenizerResult.Success(listOfTokens);
     }
 }

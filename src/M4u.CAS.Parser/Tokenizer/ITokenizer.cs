@@ -8,6 +8,6 @@ internal interface ITokenizer
     /// <summary>Парсит входную строку (содержащую математическое выражение) в список токенов</summary>
     /// <param name="request">Запрос на токенизацию. Содержит строку, содержащую математическое выражение,
     /// которую нужно токенизировать.</param>
-    /// <returns>Возвращает список токенов</returns>
-    IEnumerable<IToken> TryParse(TokenizerRequest request);
+    /// <returns>Возвращает результат токенизации</returns>
+    TokenizerResult TryParse(TokenizerRequest request);
 }

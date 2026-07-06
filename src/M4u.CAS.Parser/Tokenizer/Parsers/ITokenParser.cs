@@ -5,7 +5,7 @@
 /// </summary>
 internal interface ITokenParser
 {
-    /// <summary>Тип токен, который поддерживает данный парсер.</summary>
+    /// <summary>Тип токена, который поддерживает данный парсер.</summary>
     TokenType HandledType { get; }
 
     /// <summary>Проверяет входную строку с заданного индекса на соответствие соответствубщему токену</summary>

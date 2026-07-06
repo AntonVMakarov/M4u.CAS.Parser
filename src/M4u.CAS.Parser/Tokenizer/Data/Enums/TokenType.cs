@@ -3,8 +3,8 @@
 /// <summary>Перечисление для определения типа токена</summary>
 public enum TokenType
 {
-    CONSTANT, 
+    Number, 
     Variable, 
-    BINARY_OPERATOR, PRE_UNARY_OPERATOR, POST_UNARY_OPERATOR, 
-    FUNCTION, LEFT_BRACKET, RIGHT_BRACKET, COMMA, LEFT_CURLY_BRACKET, RIGHT_CURLY_BRACKET
+    BinaryOperator, PreUnaryOperator, PostUnaryOperator, 
+    Function, LeftBracket, RightBracket, Comma, LeftCurlyBracket, RightCurlyBracket
 }
