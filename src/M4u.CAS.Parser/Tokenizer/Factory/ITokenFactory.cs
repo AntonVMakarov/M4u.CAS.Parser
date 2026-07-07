@@ -4,7 +4,7 @@
 internal interface ITokenFactory
 {
     /// <summary>Создаёт токен заданного типа с заданным значением</summary>
-    /// <param name="type">Тип токена</param>
+    /// <param name="kind">Вид токена</param>
     /// <param name="value">Значение токена</param>
-    IToken Create(TokenType type, string value);
+    IToken Create(TokenKind kind, string value);
 }

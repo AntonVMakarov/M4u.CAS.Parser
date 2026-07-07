@@ -4,7 +4,7 @@
 internal class VariableToken : IToken
 {
     /// <summary>тип токена - переменная</summary>
-    public override TokenType Type => TokenType.Variable;
+    public override TokenKind Type => TokenKind.Variable;
 
     public VariableToken(string value) : base(value) { }
 }

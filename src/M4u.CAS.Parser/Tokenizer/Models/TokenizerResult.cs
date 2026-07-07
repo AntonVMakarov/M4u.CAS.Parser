@@ -29,7 +29,7 @@ public sealed record TokenizerResult
     /// <param name="resultTokens">Результирующий список токенов.</param>
     /// <param name="failIndex">Индекс в строке на котором "сломалось" распознование токенов.</param>
     /// <param name="failedToRecognizeToken">"Кусок" строки о который "сломалось" распознавание.</param>
-    public TokenizerResult(IReadOnlyList<IToken> resultTokens, int? failIndex, string? failedToRecognizeToken)
+    private TokenizerResult(IReadOnlyList<IToken> resultTokens, int? failIndex, string? failedToRecognizeToken)
     {
         this.ResultTokens = resultTokens;
         this.FailIndex = failIndex;

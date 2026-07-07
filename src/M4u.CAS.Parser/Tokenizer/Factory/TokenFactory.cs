@@ -4,17 +4,17 @@
 internal class TokenFactory : ITokenFactory
 {
     /// <summary>Реестр соответствия типа токена методу (делагату) его создания.</summary>
-    private readonly Dictionary<TokenType, Func<string, IToken>> _registry =
-        new Dictionary<TokenType, Func<string, IToken>>()
+    private readonly Dictionary<TokenKind, Func<string, IToken>> _registry =
+        new Dictionary<TokenKind, Func<string, IToken>>()
         {
-            { TokenType.Variable, val => new VariableToken(val) }
+            { TokenKind.Identifier, val => new Token() }
             //{ TokenType.BINARY_OPERATOR => new  }
         };
 
 
     /// <inheritdoc />
     /// <exception cref="NotSupportedException">Исключение происходит, если запрошено создание токена тип которого не поддерживается</exception>
-    public IToken Create(TokenType type, string value)
+    public IToken Create(TokenKind type, string value)
     {
         if(_registry.TryGetValue(type, out Func<string, IToken>? factoryMethod))
         {

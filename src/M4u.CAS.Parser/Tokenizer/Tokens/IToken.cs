@@ -9,7 +9,7 @@
 public abstract class IToken
 {
     /// <summary>Тип токена</summary>
-    public abstract TokenType Type { get; }
+    public abstract TokenKind Type { get; }
 
     /// <summary>Значение токена</summary>
     private readonly string Value;
