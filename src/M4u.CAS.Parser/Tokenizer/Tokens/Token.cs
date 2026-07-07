@@ -1,7 +1,13 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Text;
+﻿namespace M4u.CAS.Parser;
 
-//namespace M4u.CAS.Parser;
+public sealed record Token
+{
+    public string Value { get; }
+    public TokenKind Kind { get; }
 
-//internal readonly record struct Token(TokenType Type, string Value) : IToken;
+    public Token(string value, TokenKind kind)
+    {
+        Value = value;
+        Kind = kind;
+    }
+}

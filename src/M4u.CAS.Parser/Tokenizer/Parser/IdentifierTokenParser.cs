@@ -13,11 +13,12 @@
 internal class IdentifierTokenParser : ITokenParser
 {
     /// <inheritdoc />
-    public TokenKind HandledType => TokenKind.Identifier; 
+    public TokenKind HandledKind => TokenKind.Identifier; 
 
     /// <inheritdoc />
     public TokenParserResult Match(TokenParserRequest request)
     {
+        // Вспомогательные переменные:
         string expr = request.Expression;
         int j, i = request.Index;
 
@@ -42,7 +43,7 @@ internal class IdentifierTokenParser : ITokenParser
             // 0123456789
             // x+x12/5
             // length = 5-2 = j-i = 3
-            return TokenParserResult.Success(expr[i..j]);
+            return TokenParserResult.Success(expr[i..j], HandledKind);
         }
         else return TokenParserResult.Failure();
     }

@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using M4u.CAS.Common;
+using System.Linq.Expressions;
+using System.Net.Http.Headers;
 
 namespace M4u.CAS.Parser;
 
@@ -9,19 +11,18 @@ namespace M4u.CAS.Parser;
 internal class Tokenizer : ITokenizer
 {
     private readonly IReadOnlyList<ITokenParser> _tokenParsers;
-    private readonly ITokenFactory _tokenFactory;
+    //private readonly ITokenFactory _tokenFactory;
 
-    public Tokenizer(IReadOnlyList<ITokenParser> tokenParsers, ITokenFactory tokenFactory)
+    public Tokenizer(IReadOnlyList<ITokenParser> tokenParsers/*, ITokenFactory tokenFactory*/)
     {
         // Проверяем входные параметры:
         ArgumentNullException.ThrowIfNull(tokenParsers);
-        ArgumentNullException.ThrowIfNull(tokenFactory);
+        //ArgumentNullException.ThrowIfNull(tokenFactory);
 
         // Сохраняем ссылки на переданные зависимости:
         _tokenParsers = tokenParsers;
-        _tokenFactory = tokenFactory;
+        //_tokenFactory = tokenFactory;
     }
-
 
 
     /// <inheritdoc />
@@ -31,21 +32,39 @@ internal class Tokenizer : ITokenizer
     {
         // Проверяем входные параметры:
         ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Expression);
+
+        // Получаем строку математического выражения:
+        string expr = request.Expression;
+
+        // Получаем токен отмены:
+        IM4uCancellationToken? ct = request.CancellationToken;
 
         // Проверяем токен отмены:
-        request.CancellationToken?.ThrowIfCancellationRequested();
+        ct?.ThrowIfCancellationRequested();
 
         // Список токенов, сформированный на основе входного выражения:
-        List<IToken> listOfTokens = new List<IToken>();
+        List<Token> listOfTokens = new List<Token>();
+
+        //Dictionary<string, TokenKind> dict = new Dictionary<string, TokenKind>();
+
+        // Список парсеров, которые могут распирсить токен, начиная с
+        // i-ого элемента входной строки:
+        //List<ITokenParser> listOfParsers = new List<ITokenParser>();
+
+        List<TokenParserResult> listOfParsedResults = new List<TokenParserResult>();
 
         // Вспомогательная переменная:
-        bool isTokenIdentified;
+        //bool isTokenIdentified;
 
         // Проходим по всем элементам входной строки:
         for (int index = 0; index < request.Expression.Length;)
-        {            
+        {
+            // Проверяем токен отмены:
+            ct?.ThrowIfCancellationRequested();
+
             // Сразу пропускаем пробелы:
-            if (char.IsWhiteSpace(request.Expression[index])) 
+            if (char.IsWhiteSpace(request.Expression[index]))
             {
                 index++;
                 continue;
@@ -53,52 +72,61 @@ internal class Tokenizer : ITokenizer
 
             // Мы еще не сопоставили элементу входной строки expr,
             // начиная с индекса i ни одного токена:
-            isTokenIdentified = false;
+            //isTokenIdentified = false;
 
-
-            // Нужно пройтись по списку парсеров токенов и
-            // сопоставить i-элемент входной строки с каждым из поддерживаемых токенов:
-            foreach(ITokenParser parser in _tokenParsers)
+            // Проходим по списку парсеров токенов и смотрить какой парсер подходит
+            // для i-ого элемента входной строки:
+            foreach (ITokenParser parser in _tokenParsers)
             {
-                // Если мы идентифицировали токен во входной строке начиная с позиции i:
-                if (parser.Match(request.Expression, index, out string value))
+                // Проверяем подходит ли нам очередной парсер:
+                TokenParserResult parserResult = parser.Match(new TokenParserRequest(expr, index, ct));
+
+                // Да, подходит:
+                if (parserResult is not null && parserResult.IsParsed)
                 {
-                    // Добавляем данный токен в результирующий список токенов:
-                    listOfTokens.Add(
-                        _tokenFactory.Create(parser.HandledType, value)
-                        );
-
-                    // вычисляем новый индекс i во входной строке, начиная с которого необходимо 
-                    // продолжить анализ:
-                    //           1         2
-                    // 012345678901234567890123
-                    // sin(x)+4.3452-5/x=y*2.35
-                    // пусть i = 7 => начиная с этого индекса мы распарсили
-                    // число 4.3452, его длина равна 6 =>
-                    // новый индекс i с которого нам необходимо продолжить парсинг
-                    // равен: 7+length(4.3452)=7+6=13 =>
-                    index += listOfTokens[^1].Length;
-
-                    // мы идентифицировали токен:
-                    isTokenIdentified = true;
-
-                    // выходим из внутреннего цикла:
-                    break;
+                    // Запоминаем то, что он нам распарсил:
+                    listOfParsedResults.Add(parserResult);
                 }
             }
 
-            // анализируем как мы вышли из внутреннего цикла:
-            // если мы так и не сопоставили токен в строке expr, начиная с индекса i
-            // ни одному из поддерживаемых токенов:
-            if (!isTokenIdentified)
+            // Итак, мы попробовали все парсеры, которые у нас есть для парсинга входной строки в токен, 
+            // начиная с i-ой позиции. 
+            // Анализируем результат:
+            if (listOfParsedResults.Count == 0)
             {
-                //throw new UnknownTokenParseException(expr.ToString() + ";" + i.ToString());
-                return TokenizerResult.Failure(index, request.Expression[index].ToString());
+                // Мы не нашли ни одного подходящего парсера для символа, находящегося в i-ой позиции во
+                // входной строке:
+                return TokenizerResult.Failure(index, expr[index..]);
+            }
+            else
+            {
+                // Один или несколько парсеров смогли распарсить в токен символ, который начинается в i-ой позиции
+                // во входной строке. Нам нужно выбрать самый первый самый длинный результат:
+                TokenParserResult? result = listOfParsedResults.MaxBy(r => r.ParsedValue.Length);
+
+                // Создаём на основе полученных результатов токен:
+                Token token = new Token(result.ParsedValue, (TokenKind)result.TokenKind);
+
+                // Добавляем токен в результирующий список:
+                listOfTokens.Add(token);
+
+                // Очищаем список с результатами:
+                listOfParsedResults.Clear();
+
+                // Теперь вычисляем новый индекс i во входной строке, начиная с которого необходимо 
+                // продолжить анализ:
+                //           1         2
+                // 012345678901234567890123
+                // sin(x)+4.3452-5/x=y*2.35
+                // пусть i = 7 => начиная с этого индекса мы распарсили
+                // число 4.3452, его длина равна 6 =>
+                // новый индекс i с которого нам необходимо продолжить парсинг
+                // равен: 7+length(4.3452)=7+6=13 =>
+                index += token.Value.Length;
             }
         }
 
-        // если мы добрались сюда, то мы распарсили входную строку на список токенов =>
-        // возвращаем результат:
+        // Возвращаем результат:
         return TokenizerResult.Success(listOfTokens);
     }
 }

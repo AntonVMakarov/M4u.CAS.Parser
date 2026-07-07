@@ -6,7 +6,7 @@
 internal interface ITokenParser
 {
     /// <summary>Вид токена, который поддерживает данный парсер.</summary>
-    TokenKind HandledType { get; }
+    TokenKind HandledKind { get; }
 
     /// <summary>Проверяет входную строку с заданного индекса на совпадение заданному токену</summary>
     /// <param name="expr">Входная строка</param>

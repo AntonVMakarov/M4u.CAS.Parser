@@ -8,7 +8,7 @@ public sealed record TokenizerResult
     /// <summary>
     /// Результирующий список токенов.
     /// </summary>
-    public IReadOnlyList<IToken> ResultTokens { get; }
+    public IReadOnlyList<Token> ResultTokens { get; }
 
 
     /// <summary>
@@ -29,7 +29,7 @@ public sealed record TokenizerResult
     /// <param name="resultTokens">Результирующий список токенов.</param>
     /// <param name="failIndex">Индекс в строке на котором "сломалось" распознование токенов.</param>
     /// <param name="failedToRecognizeToken">"Кусок" строки о который "сломалось" распознавание.</param>
-    private TokenizerResult(IReadOnlyList<IToken> resultTokens, int? failIndex, string? failedToRecognizeToken)
+    private TokenizerResult(IReadOnlyList<Token> resultTokens, int? failIndex, string? failedToRecognizeToken)
     {
         this.ResultTokens = resultTokens;
         this.FailIndex = failIndex;
@@ -42,7 +42,7 @@ public sealed record TokenizerResult
     /// </summary>
     /// <param name="resultTokens">Результирующий список токенов.</param>
     /// <returns>Экземпляр TokenizerResult, представляющий успешный результат токенизации.</returns>
-    public static TokenizerResult Success(IReadOnlyList<IToken> resultTokens)
+    public static TokenizerResult Success(IReadOnlyList<Token> resultTokens)
     {
         return new TokenizerResult(resultTokens, null, null);
     }
@@ -56,6 +56,6 @@ public sealed record TokenizerResult
     /// <returns>Экземпляр TokenizerResult, представляющий неуспешный результат токенизации.</returns>
     public static TokenizerResult Failure(int failIndex, string failedToRecognizeToken)
     {
-        return new TokenizerResult(Array.Empty<IToken>(), failIndex, failedToRecognizeToken);
+        return new TokenizerResult(Array.Empty<Token>(), failIndex, failedToRecognizeToken);
     }
 }
