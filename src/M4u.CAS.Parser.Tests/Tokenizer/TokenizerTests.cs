@@ -20,8 +20,8 @@ public sealed class TokenizerTests
         TokenizerResult result = tokenizer.TryParse(request);
 
         Assert.IsNotNull(result);
-        Assert.HasCount(1, result.ResultTokens);
-        Assert.AreEqual(TokenKind.Identifier, result.ResultTokens[0].Kind);
-        Assert.AreEqual(expr, result.ResultTokens[0].Value);
+        Assert.HasCount(1, result.Tokens);
+        Assert.AreEqual(TokenKind.Identifier, result.Tokens[0].Kind);
+        Assert.AreEqual(expr, result.Tokens[0].Value);
     }
 }

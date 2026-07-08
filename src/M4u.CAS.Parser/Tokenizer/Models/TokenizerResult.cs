@@ -1,4 +1,6 @@
-﻿namespace M4u.CAS.Parser;
+﻿using System.Collections.Immutable;
+
+namespace M4u.CAS.Parser;
 
 /// <summary>
 /// Результат токенизации входной строки.
@@ -8,43 +10,35 @@ internal sealed record TokenizerResult
     /// <summary>
     /// Результирующий список токенов.
     /// </summary>
-    public IReadOnlyList<Token> ResultTokens { get; }
+    public IReadOnlyList<Token> Tokens { get; }
 
 
     /// <summary>
-    /// Индекс в строке на котором "сломалось" распознование токенов.
+    /// Список диагностической информации в случае ошибки.
     /// </summary>
-    public int? FailIndex { get; }
-
-
-    /// <summary>
-    /// "Кусок" строки о который "сломалось" распознавание.
-    /// </summary>
-    public string? FailedToRecognizeToken { get; }
+    public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
 
     /// <summary>
     /// Открытый конструктор для создания экземпляра TokenizerResult.
     /// </summary>
-    /// <param name="resultTokens">Результирующий список токенов.</param>
-    /// <param name="failIndex">Индекс в строке на котором "сломалось" распознование токенов.</param>
-    /// <param name="failedToRecognizeToken">"Кусок" строки о который "сломалось" распознавание.</param>
-    private TokenizerResult(IReadOnlyList<Token> resultTokens, int? failIndex, string? failedToRecognizeToken)
+    /// <param name="tokens">Результирующий список токенов.</param>
+    /// <param name="diagnostics">Список диагностических сообщений в случае ошибки.</param>
+    private TokenizerResult(IReadOnlyList<Token> tokens, IReadOnlyList<Diagnostic> diagnostics)
     {
-        this.ResultTokens = resultTokens;
-        this.FailIndex = failIndex;
-        this.FailedToRecognizeToken = failedToRecognizeToken;
+        this.Tokens = tokens;
+        this.Diagnostics = diagnostics;
     }
 
 
     /// <summary>
     /// Создает успешный результат токенизации с предоставленным списком токенов.
     /// </summary>
-    /// <param name="resultTokens">Результирующий список токенов.</param>
+    /// <param name="tokens">Результирующий список токенов.</param>
     /// <returns>Экземпляр TokenizerResult, представляющий успешный результат токенизации.</returns>
-    public static TokenizerResult Success(IReadOnlyList<Token> resultTokens)
+    public static TokenizerResult Success(IReadOnlyList<Token> tokens)
     {
-        return new TokenizerResult(resultTokens, null, null);
+        return new TokenizerResult(tokens, Array.Empty<Diagnostic>());
     }
 
 
@@ -54,8 +48,8 @@ internal sealed record TokenizerResult
     /// <param name="failIndex">Индекс в строке на котором "сломалось" распознование токенов.</param>
     /// <param name="failedToRecognizeToken">"Кусок" строки о который "сломалось" распознавание.</param>
     /// <returns>Экземпляр TokenizerResult, представляющий неуспешный результат токенизации.</returns>
-    public static TokenizerResult Failure(int failIndex, string failedToRecognizeToken)
+    public static TokenizerResult Failure(IReadOnlyList<Token> tokens, IReadOnlyList<Diagnostic> diagnostics)
     {
-        return new TokenizerResult(Array.Empty<Token>(), failIndex, failedToRecognizeToken);
+        return new TokenizerResult(tokens, diagnostics);
     }
 }

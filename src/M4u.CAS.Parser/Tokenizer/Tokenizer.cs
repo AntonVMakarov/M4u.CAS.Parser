@@ -1,6 +1,4 @@
 ﻿using M4u.CAS.Common;
-using System.Linq.Expressions;
-using System.Net.Http.Headers;
 
 namespace M4u.CAS.Parser;
 
@@ -88,7 +86,14 @@ internal class Tokenizer : ITokenizer
             {
                 // Мы не нашли ни одного подходящего парсера для символа, находящегося в i-ой позиции во
                 // входной строке:
-                return TokenizerResult.Failure(index, expr[index..]);
+                return TokenizerResult.Failure(
+                    listOfTokens,
+                    [
+                        new Diagnostic(
+                            DiagnosticCode.UnknownCharacter,
+                            new TextSpan(index, 1),
+                            $"Неизвестный символ '{expr[index]}'.")
+                    ]);
             }
             else
             {

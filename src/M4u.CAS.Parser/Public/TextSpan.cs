@@ -3,7 +3,7 @@
 /// <summary>
 /// Структура которая хранит индекс начала и длину.
 /// </summary>
-internal readonly record struct TextSpan
+public readonly record struct TextSpan
 {
     public readonly int Start { get; }
     public readonly int Length { get; }
