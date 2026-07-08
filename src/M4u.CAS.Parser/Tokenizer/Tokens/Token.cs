@@ -2,12 +2,20 @@
 
 internal sealed record Token
 {
-    public string Value { get; }
     public TokenKind Kind { get; }
+    
+    public string Value { get; }
 
-    public Token(string value, TokenKind kind)
+    /// <summary>
+    /// Структура, содержащая начальный индекс и длину токена в составе строки.
+    /// (Нужна, чтобы если понадобиться можно было получить точное местоположение токена в составе исходной строки).
+    /// </summary>
+    public TextSpan Span { get; }
+
+    public Token(TokenKind kind, string value, TextSpan span)
     {
-        Value = value;
         Kind = kind;
+        Value = value;
+        Span = span;
     }
 }

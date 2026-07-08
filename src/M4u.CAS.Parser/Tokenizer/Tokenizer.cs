@@ -98,11 +98,13 @@ internal class Tokenizer : ITokenizer
                 var bestMatch = matches.MaxBy(r => r.parsedLength);
 
                 // Создаём на основе полученных результатов токен:
-                Token token = new Token(
-                    // Получаем распознанное выражение:
-                    expr[index..(index + bestMatch.parsedLength)], 
-                    // И соответствующий этому выражению вид токена:
-                    bestMatch.parsedTokenKind
+                Token token = new Token(                    
+                    // Получаем соответствующий распознанному выражению вид токена:
+                    bestMatch.parsedTokenKind,
+                    // Cамо распознанное выражение:
+                    expr[index..(index + bestMatch.parsedLength)],
+                    // Координаты токена в исходной строке:
+                    new TextSpan(index, bestMatch.parsedLength)
                     );
 
                 // Добавляем токен в результирующий список:
