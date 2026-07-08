@@ -6,9 +6,9 @@ public sealed class TokenizerTests
     [TestMethod]
     public void TryParse_Test()
     {
-        List<ITokenParser> parsers = new List<ITokenParser>()
+        List<ITokenRecognizer> parsers = new List<ITokenRecognizer>()
         {
-            new IdentifierTokenParser()
+            new IdentifierTokenRecognizer()
         };
 
         ITokenizer tokenizer = new Tokenizer(parsers);

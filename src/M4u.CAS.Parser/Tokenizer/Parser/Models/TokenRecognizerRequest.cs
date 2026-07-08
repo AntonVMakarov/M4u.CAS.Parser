@@ -3,9 +3,9 @@
 namespace M4u.CAS.Parser;
 
 /// <summary>
-/// Модель данных, описывающая запрос к парсеру токенов.
+/// Модель данных, описывающая запрос к распознавателю токенов.
 /// </summary>
-internal sealed record TokenParserRequest
+internal sealed record TokenRecognizerRequest
 {
     /// <summary>
     /// Входная строка с математическим выражением.
@@ -23,7 +23,7 @@ internal sealed record TokenParserRequest
     public IM4uCancellationToken? CancellationToken { get; }
 
 
-    public TokenParserRequest(string expression, int index, IM4uCancellationToken? cancellationToken)
+    public TokenRecognizerRequest(string expression, int index, IM4uCancellationToken? cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(expression);
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));

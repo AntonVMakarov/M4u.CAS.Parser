@@ -3,7 +3,7 @@
 /// <summary>
 /// Интерфейс для парсинга токена.
 /// </summary>
-internal interface ITokenParser
+internal interface ITokenRecognizer
 {
     /// <summary>Вид токена, который поддерживает данный парсер.</summary>
     TokenKind HandledTokenKind { get; }
@@ -12,5 +12,5 @@ internal interface ITokenParser
     /// <param name="expr">Входная строка</param>
     /// <param name="i">Индекс во входной строке с которого необходимо начать проверку</param>
     /// <param name="value">Результирующее значение (значение распарсенного токена)</param>
-    TokenParserResult Match(TokenParserRequest request);
+    TokenRecognizerResult Match(TokenRecognizerRequest request);
 }

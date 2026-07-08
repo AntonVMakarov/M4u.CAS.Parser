@@ -10,13 +10,13 @@
 /// x235y - подходит
 /// 234x - не подходит
 /// </summary>
-internal class IdentifierTokenParser : ITokenParser
+internal class IdentifierTokenRecognizer : ITokenRecognizer
 {
     /// <inheritdoc />
     public TokenKind HandledTokenKind => TokenKind.Identifier; 
 
     /// <inheritdoc />
-    public TokenParserResult Match(TokenParserRequest request)
+    public TokenRecognizerResult Match(TokenRecognizerRequest request)
     {
         // Вспомогательные переменные:
         string expr = request.Expression;
@@ -43,8 +43,8 @@ internal class IdentifierTokenParser : ITokenParser
             // 0123456789
             // x+x12/5
             // length = 5-2 = j-i = 3
-            return TokenParserResult.Success(j - i);
+            return TokenRecognizerResult.Success(j - i);
         }
-        else return TokenParserResult.NoMatch;
+        else return TokenRecognizerResult.NoMatch;
     }
 }

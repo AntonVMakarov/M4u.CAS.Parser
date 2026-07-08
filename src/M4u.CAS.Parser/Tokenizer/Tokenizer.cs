@@ -10,17 +10,17 @@ namespace M4u.CAS.Parser;
 /// </summary>
 internal class Tokenizer : ITokenizer
 {
-    private readonly IReadOnlyList<ITokenParser> _tokenParsers;
+    private readonly IReadOnlyList<ITokenRecognizer> _tokenRecognizers;
     //private readonly ITokenFactory _tokenFactory;
 
-    public Tokenizer(IReadOnlyList<ITokenParser> tokenParsers/*, ITokenFactory tokenFactory*/)
+    public Tokenizer(IReadOnlyList<ITokenRecognizer> tokenRecognizers/*, ITokenFactory tokenFactory*/)
     {
         // Проверяем входные параметры:
-        ArgumentNullException.ThrowIfNull(tokenParsers);
+        ArgumentNullException.ThrowIfNull(tokenRecognizers);
         //ArgumentNullException.ThrowIfNull(tokenFactory);
 
         // Сохраняем ссылки на переданные зависимости:
-        _tokenParsers = tokenParsers;
+        _tokenRecognizers = tokenRecognizers;
         //_tokenFactory = tokenFactory;
     }
 
@@ -65,13 +65,13 @@ internal class Tokenizer : ITokenizer
 
             // Проходим по списку парсеров токенов и смотрить какой парсер подходит
             // для i-ого элемента входной строки:
-            foreach (ITokenParser parser in _tokenParsers)
+            foreach (ITokenRecognizer parser in _tokenRecognizers)
             {
                 // Проверяем токен отмены:
                 ct?.ThrowIfCancellationRequested();
 
                 // Пытаемся распарсить символы строки (начиная с index) очередным парсером:
-                TokenParserResult parserResult = parser.Match(new TokenParserRequest(expr, index, ct));
+                TokenRecognizerResult parserResult = parser.Match(new TokenRecognizerRequest(expr, index, ct));
 
                 // Проверяем распознал что-то парсер или нет:
                 if (parserResult.IsMatch)
@@ -94,7 +94,8 @@ internal class Tokenizer : ITokenizer
             {
                 // Один или несколько парсеров смогли распарсить в токен символ, который начинается в i-ой позиции
                 // во входной строке. Нам нужно выбрать самый первый самый длинный результат:
-                //(TokenKind parsedTokenKind, int parsedLength) = matches.MaxBy(r => r.parsedLength);
+                // (Парсеры спроектированы таким образом, что разные парсеры не распознают одинаковый текст, поэтому
+                // результат с максимальной длиной токена должен быть только один.)
                 var bestMatch = matches.MaxBy(r => r.parsedLength);
 
                 // Создаём на основе полученных результатов токен:
