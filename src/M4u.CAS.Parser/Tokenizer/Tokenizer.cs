@@ -77,7 +77,7 @@ internal class Tokenizer : ITokenizer
                 if (parserResult.IsMatch)
                 {
                     // Этот парсер что-то распознал:
-                    matches.Add((parser.HandledKind, parserResult.Length));
+                    matches.Add((parser.HandledTokenKind, parserResult.Length));
                 }
             }
 

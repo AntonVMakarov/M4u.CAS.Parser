@@ -13,7 +13,7 @@
 internal class IdentifierTokenParser : ITokenParser
 {
     /// <inheritdoc />
-    public TokenKind HandledKind => TokenKind.Identifier; 
+    public TokenKind HandledTokenKind => TokenKind.Identifier; 
 
     /// <inheritdoc />
     public TokenParserResult Match(TokenParserRequest request)
