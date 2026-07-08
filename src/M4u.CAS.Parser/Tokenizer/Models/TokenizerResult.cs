@@ -3,7 +3,7 @@
 /// <summary>
 /// Результат токенизации входной строки.
 /// </summary>
-public sealed record TokenizerResult
+internal sealed record TokenizerResult
 {
     /// <summary>
     /// Результирующий список токенов.

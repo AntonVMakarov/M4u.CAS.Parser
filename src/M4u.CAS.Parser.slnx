@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="M4u.CAS.Parser.Tests/M4u.CAS.Parser.Tests.csproj" />
   <Project Path="M4u.CAS.Parser/M4u.CAS.Parser.csproj" />
 </Solution>

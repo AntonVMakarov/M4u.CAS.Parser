@@ -43,8 +43,8 @@ internal class IdentifierTokenParser : ITokenParser
             // 0123456789
             // x+x12/5
             // length = 5-2 = j-i = 3
-            return TokenParserResult.Success(expr[i..j], HandledKind);
+            return TokenParserResult.Success(j - i);
         }
-        else return TokenParserResult.Failure();
+        else return TokenParserResult.NoMatch;
     }
 }

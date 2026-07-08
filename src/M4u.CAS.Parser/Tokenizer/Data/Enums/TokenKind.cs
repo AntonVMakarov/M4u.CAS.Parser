@@ -3,7 +3,7 @@
 /// <summary>
 /// Перечисление для определения вида токена
 /// </summary>
-public enum TokenKind
+internal enum TokenKind
 {
     Number,
     // Это либо переменная либо функция

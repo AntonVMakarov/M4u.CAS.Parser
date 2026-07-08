@@ -5,7 +5,7 @@ namespace M4u.CAS.Parser;
 /// <summary>
 /// Модель данных, описывающая запрос к парсеру токенов.
 /// </summary>
-public sealed record TokenParserRequest
+internal sealed record TokenParserRequest
 {
     /// <summary>
     /// Входная строка с математическим выражением.

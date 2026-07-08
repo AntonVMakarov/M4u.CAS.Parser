@@ -1,29 +1,47 @@
 ﻿namespace M4u.CAS.Parser;
 
-public sealed record TokenParserResult
+
+/// <summary>
+/// Результат парсинга символов входной строки.
+/// </summary>
+internal readonly record struct TokenParserResult
 {
-    public bool IsParsed { get; }
-    public string? ParsedValue { get; }
-    public TokenKind? TokenKind { get; }
+    /// <summary>
+    /// Количество символов, которые парсеру удалось распознать.
+    /// </summary>
+    public int Length { get; }
 
-    private TokenParserResult(bool isParsed, string? parsedValue, TokenKind? tokenKind)
+
+    /// <summary>Логическая переменная, показывающая удалось ли выполнить парсинг.</summary>
+    public bool IsMatch => Length > 0;
+
+
+    /// <summary>
+    /// Приветный конструктор
+    /// </summary>
+    /// <param name="length">Количество символов, распознанных парсером.</param>
+    private TokenParserResult(int length)
     {
-        IsParsed = isParsed;
-        ParsedValue = parsedValue;
-        TokenKind = tokenKind;
+        Length = length;
     }
 
-    public static TokenParserResult Success(string? parsedValue, TokenKind? tokenKind)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(parsedValue);
-        ArgumentException.ThrowIfNullOrWhiteSpace(parsedValue);
-        ArgumentNullException.ThrowIfNull(tokenKind);
 
-        return new TokenParserResult(true, parsedValue, tokenKind);
-    }
+    /// <summary>
+    /// Фабричный метод обозначающий, что совпадения не было (парсинг не состоялся).
+    /// </summary>
+    public static TokenParserResult NoMatch => new TokenParserResult(0);
 
-    public static TokenParserResult Failure()
+
+    /// <summary>
+    /// Фабричный метод обозначающий, что совпадение было (парсинг состоялся).
+    /// </summary>
+    /// <param name="Length">Длина совпадения</param>
+    public static TokenParserResult Success(int Length)
     {
-        return new TokenParserResult(false, null, null);
+        // Проверяем входной аргумент:
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Length);
+
+        // Возвращаем результат:
+        return new TokenParserResult(Length);
     }
 }

@@ -46,16 +46,9 @@ internal class Tokenizer : ITokenizer
         // Список токенов, сформированный на основе входного выражения:
         List<Token> listOfTokens = new List<Token>();
 
-        //Dictionary<string, TokenKind> dict = new Dictionary<string, TokenKind>();
-
-        // Список парсеров, которые могут распирсить токен, начиная с
-        // i-ого элемента входной строки:
-        //List<ITokenParser> listOfParsers = new List<ITokenParser>();
-
-        List<TokenParserResult> listOfParsedResults = new List<TokenParserResult>();
-
-        // Вспомогательная переменная:
-        //bool isTokenIdentified;
+        // Список кортежей (вид токена, длина распознанного выражения) от парсеров, которым
+        // удалось что-то распознать:
+        List<(TokenKind parsedTokenKind, int parsedLength)> matches = new List<(TokenKind, int)>();
 
         // Проходим по всем элементам входной строки:
         for (int index = 0; index < request.Expression.Length;)
@@ -70,29 +63,28 @@ internal class Tokenizer : ITokenizer
                 continue;
             }
 
-            // Мы еще не сопоставили элементу входной строки expr,
-            // начиная с индекса i ни одного токена:
-            //isTokenIdentified = false;
-
             // Проходим по списку парсеров токенов и смотрить какой парсер подходит
             // для i-ого элемента входной строки:
             foreach (ITokenParser parser in _tokenParsers)
             {
-                // Проверяем подходит ли нам очередной парсер:
+                // Проверяем токен отмены:
+                ct?.ThrowIfCancellationRequested();
+
+                // Пытаемся распарсить символы строки (начиная с index) очередным парсером:
                 TokenParserResult parserResult = parser.Match(new TokenParserRequest(expr, index, ct));
 
-                // Да, подходит:
-                if (parserResult is not null && parserResult.IsParsed)
+                // Проверяем распознал что-то парсер или нет:
+                if (parserResult.IsMatch)
                 {
-                    // Запоминаем то, что он нам распарсил:
-                    listOfParsedResults.Add(parserResult);
+                    // Этот парсер что-то распознал:
+                    matches.Add((parser.HandledKind, parserResult.Length));
                 }
             }
 
             // Итак, мы попробовали все парсеры, которые у нас есть для парсинга входной строки в токен, 
             // начиная с i-ой позиции. 
             // Анализируем результат:
-            if (listOfParsedResults.Count == 0)
+            if (matches.Count == 0)
             {
                 // Мы не нашли ни одного подходящего парсера для символа, находящегося в i-ой позиции во
                 // входной строке:
@@ -102,16 +94,22 @@ internal class Tokenizer : ITokenizer
             {
                 // Один или несколько парсеров смогли распарсить в токен символ, который начинается в i-ой позиции
                 // во входной строке. Нам нужно выбрать самый первый самый длинный результат:
-                TokenParserResult? result = listOfParsedResults.MaxBy(r => r.ParsedValue.Length);
+                //(TokenKind parsedTokenKind, int parsedLength) = matches.MaxBy(r => r.parsedLength);
+                var bestMatch = matches.MaxBy(r => r.parsedLength);
 
                 // Создаём на основе полученных результатов токен:
-                Token token = new Token(result.ParsedValue, (TokenKind)result.TokenKind);
+                Token token = new Token(
+                    // Получаем распознанное выражение:
+                    expr[index..(index + bestMatch.parsedLength)], 
+                    // И соответствующий этому выражению вид токена:
+                    bestMatch.parsedTokenKind
+                    );
 
                 // Добавляем токен в результирующий список:
                 listOfTokens.Add(token);
 
-                // Очищаем список с результатами:
-                listOfParsedResults.Clear();
+                // Очищаем список с совпадениями:
+                matches.Clear();
 
                 // Теперь вычисляем новый индекс i во входной строке, начиная с которого необходимо 
                 // продолжить анализ:
@@ -122,7 +120,7 @@ internal class Tokenizer : ITokenizer
                 // число 4.3452, его длина равна 6 =>
                 // новый индекс i с которого нам необходимо продолжить парсинг
                 // равен: 7+length(4.3452)=7+6=13 =>
-                index += token.Value.Length;
+                index += bestMatch.parsedLength;
             }
         }
 

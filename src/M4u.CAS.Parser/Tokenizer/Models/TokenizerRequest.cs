@@ -6,7 +6,7 @@ namespace M4u.CAS.Parser;
 /// <summary>
 /// Запрос к токенайзеру. 
 /// </summary>
-public sealed record TokenizerRequest
+internal sealed record TokenizerRequest
 {
     /// <summary>
     /// Выражение для токенизации.

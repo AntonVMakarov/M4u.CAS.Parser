@@ -8,6 +8,8 @@
 
   <ItemGroup>
   	<PackageReference Include="M4u.CAS.Common" Version="*" />
+	<!-- Даем доступ проекту M4u.CAS.Parser.Tests ко всем internal классам данного проекта -->
+	<InternalsVisibleTo Include="M4u.CAS.Parser.Tests" />
   </ItemGroup>
 
 </Project>

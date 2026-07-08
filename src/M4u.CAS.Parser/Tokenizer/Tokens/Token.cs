@@ -1,6 +1,6 @@
 ﻿namespace M4u.CAS.Parser;
 
-public sealed record Token
+internal sealed record Token
 {
     public string Value { get; }
     public TokenKind Kind { get; }
