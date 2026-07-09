@@ -6,7 +6,7 @@
 internal class MinusTokenRecognizer : ISingleCharacterTokenRecognizer
 {
     /// <inheritdoc />
-    public override TokenKind HandledTokenKind => TokenKind.Plus;
+    public override TokenKind HandledTokenKind => TokenKind.Minus;
 
     /// <inheritdoc />
     protected override char Character => '-';
