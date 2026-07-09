@@ -11,7 +11,15 @@ public readonly record struct TextSpan
     public TextSpan(int start, int length)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(start);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+        // Нулевая длина length разрешена.
+        // Нулевой диапазон потребуется для ошибок в конце строки:
+        // sin(x
+        //      ^здесь ожидалась ')'
+        // Позиция ошибки будет:
+        // new TextSpan(expression.Length, 0)
+
 
         Start = start;
         Length = length;

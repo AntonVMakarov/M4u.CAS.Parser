@@ -10,13 +10,19 @@ internal sealed record TokenizerResult
     /// <summary>
     /// Результирующий список токенов.
     /// </summary>
-    public IReadOnlyList<Token> Tokens { get; }
+    public ImmutableArray<Token> Tokens { get; }
 
 
     /// <summary>
     /// Список диагностической информации в случае ошибки.
     /// </summary>
-    public IReadOnlyList<Diagnostic> Diagnostics { get; }
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
+
+
+    /// <summary>
+    /// Отражает успешный или неуспешный результат токенизации.
+    /// </summary>
+    public bool IsSuccess => Diagnostics.Length == 0;
 
 
     /// <summary>
@@ -24,10 +30,10 @@ internal sealed record TokenizerResult
     /// </summary>
     /// <param name="tokens">Результирующий список токенов.</param>
     /// <param name="diagnostics">Список диагностических сообщений в случае ошибки.</param>
-    private TokenizerResult(IReadOnlyList<Token> tokens, IReadOnlyList<Diagnostic> diagnostics)
+    private TokenizerResult(IEnumerable<Token> tokens, IEnumerable<Diagnostic> diagnostics)
     {
-        this.Tokens = tokens;
-        this.Diagnostics = diagnostics;
+        this.Tokens = tokens.ToImmutableArray();
+        this.Diagnostics = diagnostics.ToImmutableArray();
     }
 
 
