@@ -9,5 +9,5 @@ internal interface ITokenizer
     /// <param name="request">Запрос на токенизацию. Содержит строку, содержащую математическое выражение,
     /// которую нужно токенизировать.</param>
     /// <returns>Возвращает результат токенизации</returns>
-    TokenizerResult TryParse(TokenizerRequest request);
+    TokenizerResult Tokenize(TokenizerRequest request);
 }

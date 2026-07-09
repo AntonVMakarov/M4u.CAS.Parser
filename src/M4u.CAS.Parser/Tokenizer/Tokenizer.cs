@@ -26,7 +26,7 @@ internal class Tokenizer : ITokenizer
     /// <inheritdoc />
     /// <exception cref="FormatException">Возникает, когда не удалось распасить символ или последовательность символов
     /// в определённый токен из заданного набора.</exception>
-    public TokenizerResult TryParse(TokenizerRequest request)
+    public TokenizerResult Tokenize(TokenizerRequest request)
     {
         // Проверяем входные параметры:
         ArgumentNullException.ThrowIfNull(request);

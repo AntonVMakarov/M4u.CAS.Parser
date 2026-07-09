@@ -17,7 +17,7 @@ public sealed class TokenizerTests
 
         TokenizerRequest request = new TokenizerRequest(expr);
 
-        TokenizerResult result = tokenizer.TryParse(request);
+        TokenizerResult result = tokenizer.Tokenize(request);
 
         Assert.IsNotNull(result);
         Assert.HasCount(1, result.Tokens);
