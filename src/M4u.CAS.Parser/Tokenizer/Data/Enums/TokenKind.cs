@@ -8,9 +8,13 @@ internal enum TokenKind
     Number,
     // Это либо переменная либо функция
     Identifier,
-    Operator,
-    LeftParenthesis,
-    RightParenthesis,
+    //Operator,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    OpenParenthesis,
+    CloseParenthesis,
     Comma,
     // Может быть он и не нужен
     EndOfInput
