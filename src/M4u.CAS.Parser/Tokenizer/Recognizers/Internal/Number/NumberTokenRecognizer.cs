@@ -5,9 +5,11 @@
 /// в соответствующий токен.
 /// </summary>
 internal class NumberTokenRecognizer : ITokenRecognizer
-{    
-    /// <inheritdoc />
-    public TokenKind HandledTokenKind => TokenKind.Number;
+{
+    /// <summary>
+    /// Вид токена, который распознает данный парсер.
+    /// </summary>
+    public readonly TokenKind _tokenKind = TokenKind.Number;
 
     /// <inheritdoc />
     public TokenRecognizerResult Match(TokenRecognizerRequest request)
@@ -50,7 +52,7 @@ internal class NumberTokenRecognizer : ITokenRecognizer
             // 0123456789
             // x+1.2356+y
             // длина = 6 = j - i = 8 - 2 = 6
-            return TokenRecognizerResult.Success(j - i);
+            return TokenRecognizerResult.Success(_tokenKind, j - i);
         }
         // шаблон не подходит - токен - не число:
         else return TokenRecognizerResult.NoMatch;

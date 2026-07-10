@@ -12,8 +12,10 @@
 /// </summary>
 internal class IdentifierTokenRecognizer : ITokenRecognizer
 {
-    /// <inheritdoc />
-    public TokenKind HandledTokenKind => TokenKind.Identifier; 
+    /// <summary>
+    /// Вид токена, который распознает данный парсер.
+    /// </summary>
+    public readonly TokenKind _tokenKind = TokenKind.Identifier; 
 
     /// <inheritdoc />
     public TokenRecognizerResult Match(TokenRecognizerRequest request)
@@ -43,7 +45,7 @@ internal class IdentifierTokenRecognizer : ITokenRecognizer
             // 0123456789
             // x+x12/5
             // length = 5-2 = j-i = 3
-            return TokenRecognizerResult.Success(j - i);
+            return TokenRecognizerResult.Success(_tokenKind, j - i);
         }
         else return TokenRecognizerResult.NoMatch;
     }

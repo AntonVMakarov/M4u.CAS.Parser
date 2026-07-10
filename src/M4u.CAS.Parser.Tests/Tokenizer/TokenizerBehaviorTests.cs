@@ -69,18 +69,42 @@ public sealed class TokenizerBehaviorTests
     }
 
     [TestMethod]
-    public void Tokenize_OperatorAndParenthesisCharacters_ReturnsOneTokenPerCharacter()
+    public void Tokenize_FixedOperatorAndParenthesisCharacters_ReturnsOneTokenPerCharacter()
     {
-        string expression = "+-()";
+        string expression = "+-*:/^()";
 
         TokenizerResult result = _tokenizer.Tokenize(new TokenizerRequest(expression));
 
         Assert.IsTrue(result.IsSuccess);
-        Assert.HasCount(4, result.Tokens);
+        Assert.HasCount(8, result.Tokens);
         AssertToken(result.Tokens[0], TokenKind.Plus, "+", 0, 1);
         AssertToken(result.Tokens[1], TokenKind.Minus, "-", 1, 1);
-        AssertToken(result.Tokens[2], TokenKind.OpenParenthesis, "(", 2, 1);
-        AssertToken(result.Tokens[3], TokenKind.CloseParenthesis, ")", 3, 1);
+        AssertToken(result.Tokens[2], TokenKind.Multiplication, "*", 2, 1);
+        AssertToken(result.Tokens[3], TokenKind.Division, ":", 3, 1);
+        AssertToken(result.Tokens[4], TokenKind.Division, "/", 4, 1);
+        AssertToken(result.Tokens[5], TokenKind.Power, "^", 5, 1);
+        AssertToken(result.Tokens[6], TokenKind.OpenParenthesis, "(", 6, 1);
+        AssertToken(result.Tokens[7], TokenKind.CloseParenthesis, ")", 7, 1);
+    }
+
+    [TestMethod]
+    public void Tokenize_ExpressionWithNewOperators_ReturnsExpectedTokenKindsAndSpans()
+    {
+        string expression = "2*x^3/4:5";
+
+        TokenizerResult result = _tokenizer.Tokenize(new TokenizerRequest(expression));
+
+        Assert.IsTrue(result.IsSuccess);
+        Assert.HasCount(9, result.Tokens);
+        AssertToken(result.Tokens[0], TokenKind.Number, "2", 0, 1);
+        AssertToken(result.Tokens[1], TokenKind.Multiplication, "*", 1, 1);
+        AssertToken(result.Tokens[2], TokenKind.Identifier, "x", 2, 1);
+        AssertToken(result.Tokens[3], TokenKind.Power, "^", 3, 1);
+        AssertToken(result.Tokens[4], TokenKind.Number, "3", 4, 1);
+        AssertToken(result.Tokens[5], TokenKind.Division, "/", 5, 1);
+        AssertToken(result.Tokens[6], TokenKind.Number, "4", 6, 1);
+        AssertToken(result.Tokens[7], TokenKind.Division, ":", 7, 1);
+        AssertToken(result.Tokens[8], TokenKind.Number, "5", 8, 1);
     }
 
     [TestMethod]

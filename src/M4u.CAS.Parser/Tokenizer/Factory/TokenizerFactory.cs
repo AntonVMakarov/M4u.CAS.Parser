@@ -9,10 +9,17 @@ internal class TokenizerFactory : ITokenizerFactory
             [
                 new IdentifierTokenRecognizer(),
                 new NumberTokenRecognizer(),
-                new OpenParenthesisTokenRecognizer(),
-                new CloseParenthesisTokenRecognizer(),
-                new PlusTokenRecognizer(),
-                new MinusTokenRecognizer(),
+                new FixedTokenRecognizer(
+                    [
+                        new FixedTokenDefinition("+", TokenKind.Plus),
+                        new FixedTokenDefinition("-", TokenKind.Minus),
+                        new FixedTokenDefinition("*", TokenKind.Multiplication),
+                        new FixedTokenDefinition(":", TokenKind.Division),
+                        new FixedTokenDefinition("/", TokenKind.Division),
+                        new FixedTokenDefinition("^", TokenKind.Power),
+                        new FixedTokenDefinition("(", TokenKind.OpenParenthesis),
+                        new FixedTokenDefinition(")", TokenKind.CloseParenthesis),
+                    ])
             ]);
     }
 }

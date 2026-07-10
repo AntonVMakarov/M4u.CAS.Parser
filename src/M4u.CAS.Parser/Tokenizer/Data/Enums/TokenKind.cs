@@ -5,14 +5,17 @@
 /// </summary>
 internal enum TokenKind
 {
+    // Нужен, в случае, если токен не был распознан
+    None = 0,
     Number,
     // Это либо переменная либо функция
     Identifier,
     //Operator,
     Plus,
     Minus,
-    Star,
-    Slash,
+    Multiplication,
+    Division,
+    Power,
     OpenParenthesis,
     CloseParenthesis,
     Comma,

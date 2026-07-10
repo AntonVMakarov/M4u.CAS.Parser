@@ -7,6 +7,12 @@
 internal readonly record struct TokenRecognizerResult
 {
     /// <summary>
+    /// Вид токена.
+    /// </summary>
+    public TokenKind Kind { get; }
+
+
+    /// <summary>
     /// Количество символов, которые парсеру удалось распознать.
     /// </summary>
     public int Length { get; }
@@ -20,8 +26,9 @@ internal readonly record struct TokenRecognizerResult
     /// Приветный конструктор
     /// </summary>
     /// <param name="length">Количество символов, распознанных парсером.</param>
-    private TokenRecognizerResult(int length)
+    private TokenRecognizerResult(TokenKind kind, int length)
     {
+        Kind = kind;
         Length = length;
     }
 
@@ -29,19 +36,19 @@ internal readonly record struct TokenRecognizerResult
     /// <summary>
     /// Фабричный метод обозначающий, что совпадения не было (парсинг не состоялся).
     /// </summary>
-    public static TokenRecognizerResult NoMatch => new TokenRecognizerResult(0);
+    public static TokenRecognizerResult NoMatch => new TokenRecognizerResult(TokenKind.None, 0);
 
 
     /// <summary>
     /// Фабричный метод обозначающий, что совпадение было (парсинг состоялся).
     /// </summary>
     /// <param name="Length">Длина совпадения</param>
-    public static TokenRecognizerResult Success(int Length)
+    public static TokenRecognizerResult Success(TokenKind kind, int Length)
     {
         // Проверяем входной аргумент:
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Length);
 
         // Возвращаем результат:
-        return new TokenRecognizerResult(Length);
+        return new TokenRecognizerResult(kind, Length);
     }
 }

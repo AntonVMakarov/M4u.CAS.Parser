@@ -41,21 +41,20 @@ public sealed class TokenizerAlgorithmTests
 
     private sealed class FixedTextTokenRecognizer : ITokenRecognizer
     {
+        private readonly TokenKind _handledTokenKind;
         private readonly string _text;
 
         public FixedTextTokenRecognizer(TokenKind handledTokenKind, string text)
         {
-            HandledTokenKind = handledTokenKind;
+            _handledTokenKind = handledTokenKind;
             _text = text;
         }
-
-        public TokenKind HandledTokenKind { get; }
 
         public TokenRecognizerResult Match(TokenRecognizerRequest request)
         {
             if (request.Expression[request.Index..].StartsWith(_text, StringComparison.Ordinal))
             {
-                return TokenRecognizerResult.Success(_text.Length);
+                return TokenRecognizerResult.Success(_handledTokenKind, _text.Length);
             }
 
             return TokenRecognizerResult.NoMatch;

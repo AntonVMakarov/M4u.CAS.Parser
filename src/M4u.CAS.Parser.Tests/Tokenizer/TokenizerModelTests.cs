@@ -35,7 +35,17 @@ public sealed class TokenizerModelTests
     [DataRow(-1)]
     public void TokenRecognizerResult_Success_WhenLengthIsNotPositive_ThrowsArgumentOutOfRangeException(int length)
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => TokenRecognizerResult.Success(length));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => TokenRecognizerResult.Success(TokenKind.Identifier, length));
+    }
+
+    [TestMethod]
+    public void TokenRecognizerResult_Success_StoresKindAndLength()
+    {
+        TokenRecognizerResult result = TokenRecognizerResult.Success(TokenKind.Power, 2);
+
+        Assert.IsTrue(result.IsMatch);
+        Assert.AreEqual(TokenKind.Power, result.Kind);
+        Assert.AreEqual(2, result.Length);
     }
 
     [TestMethod]

@@ -17,8 +17,8 @@ public sealed class TokenRecognizerTests
 
         TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest(expression, 0, null));
 
-        Assert.AreEqual(TokenKind.Identifier, recognizer.HandledTokenKind);
         Assert.IsTrue(result.IsMatch);
+        Assert.AreEqual(TokenKind.Identifier, result.Kind);
         Assert.AreEqual(expectedLength, result.Length);
     }
 
@@ -50,8 +50,8 @@ public sealed class TokenRecognizerTests
 
         TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest(expression, 0, null));
 
-        Assert.AreEqual(TokenKind.Number, recognizer.HandledTokenKind);
         Assert.IsTrue(result.IsMatch);
+        Assert.AreEqual(TokenKind.Number, result.Kind);
         Assert.AreEqual(expectedLength, result.Length);
     }
 
@@ -70,34 +70,73 @@ public sealed class TokenRecognizerTests
     }
 
     [TestMethod]
-    public void SingleCharacterTokenRecognizers_Match_WhenCharacterStartsAtIndex_ReturnsOneCharacterToken()
+    [DataRow("+", nameof(TokenKind.Plus))]
+    [DataRow("-", nameof(TokenKind.Minus))]
+    [DataRow("*", nameof(TokenKind.Multiplication))]
+    [DataRow(":", nameof(TokenKind.Division))]
+    [DataRow("/", nameof(TokenKind.Division))]
+    [DataRow("^", nameof(TokenKind.Power))]
+    [DataRow("(", nameof(TokenKind.OpenParenthesis))]
+    [DataRow(")", nameof(TokenKind.CloseParenthesis))]
+    public void FixedTokenRecognizer_Match_WhenConfiguredTokenStartsAtIndex_ReturnsConfiguredToken(
+        string expression,
+        string expectedKindName)
     {
-        (ITokenRecognizer recognizer, TokenKind kind, string expression)[] testCases =
-        [
-            (new PlusTokenRecognizer(), TokenKind.Plus, "+"),
-            (new MinusTokenRecognizer(), TokenKind.Minus, "-"),
-            (new OpenParenthesisTokenRecognizer(), TokenKind.OpenParenthesis, "("),
-            (new CloseParenthesisTokenRecognizer(), TokenKind.CloseParenthesis, ")"),
-        ];
+        TokenKind expectedKind = Enum.Parse<TokenKind>(expectedKindName);
+        FixedTokenRecognizer recognizer = CreateDefaultFixedTokenRecognizer();
 
-        foreach ((ITokenRecognizer recognizer, TokenKind kind, string expression) in testCases)
-        {
-            TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest(expression, 0, null));
+        TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest(expression, 0, null));
 
-            Assert.AreEqual(kind, recognizer.HandledTokenKind);
-            Assert.IsTrue(result.IsMatch);
-            Assert.AreEqual(1, result.Length);
-        }
+        Assert.IsTrue(result.IsMatch);
+        Assert.AreEqual(expectedKind, result.Kind);
+        Assert.AreEqual(1, result.Length);
     }
 
     [TestMethod]
-    public void SingleCharacterTokenRecognizer_Match_WhenDifferentCharacterStartsAtIndex_ReturnsNoMatch()
+    public void FixedTokenRecognizer_Match_WhenNoConfiguredTokenStartsAtIndex_ReturnsNoMatch()
     {
-        PlusTokenRecognizer recognizer = new PlusTokenRecognizer();
+        FixedTokenRecognizer recognizer = CreateDefaultFixedTokenRecognizer();
 
-        TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest("-", 0, null));
+        TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest("x", 0, null));
 
         Assert.IsFalse(result.IsMatch);
         Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void FixedTokenRecognizer_Match_WhenDefinitionsOverlap_ReturnsLongestToken()
+    {
+        FixedTokenRecognizer recognizer = new FixedTokenRecognizer(
+            [
+                new FixedTokenDefinition(":", TokenKind.Division),
+                new FixedTokenDefinition(":=", TokenKind.Power),
+            ]);
+
+        TokenRecognizerResult result = recognizer.Match(new TokenRecognizerRequest(":=x", 0, null));
+
+        Assert.IsTrue(result.IsMatch);
+        Assert.AreEqual(TokenKind.Power, result.Kind);
+        Assert.AreEqual(2, result.Length);
+    }
+
+    [TestMethod]
+    public void FixedTokenRecognizer_NullDefinitions_ThrowsArgumentNullException()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => new FixedTokenRecognizer(null!));
+    }
+
+    private static FixedTokenRecognizer CreateDefaultFixedTokenRecognizer()
+    {
+        return new FixedTokenRecognizer(
+            [
+                new FixedTokenDefinition("+", TokenKind.Plus),
+                new FixedTokenDefinition("-", TokenKind.Minus),
+                new FixedTokenDefinition("*", TokenKind.Multiplication),
+                new FixedTokenDefinition(":", TokenKind.Division),
+                new FixedTokenDefinition("/", TokenKind.Division),
+                new FixedTokenDefinition("^", TokenKind.Power),
+                new FixedTokenDefinition("(", TokenKind.OpenParenthesis),
+                new FixedTokenDefinition(")", TokenKind.CloseParenthesis),
+            ]);
     }
 }

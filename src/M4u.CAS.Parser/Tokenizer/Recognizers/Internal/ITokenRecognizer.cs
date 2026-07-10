@@ -1,13 +1,10 @@
 ﻿namespace M4u.CAS.Parser;
 
 /// <summary>
-/// Интерфейс для парсинга токена.
+/// Интерфейс распознавания последовательности символов как токена.
 /// </summary>
 internal interface ITokenRecognizer
 {
-    /// <summary>Вид токена, который поддерживает данный парсер.</summary>
-    TokenKind HandledTokenKind { get; }
-
     /// <summary>Проверяет входную строку с заданного индекса на совпадение заданному токену</summary>
     /// <param name="expr">Входная строка</param>
     /// <param name="i">Индекс во входной строке с которого необходимо начать проверку</param>
